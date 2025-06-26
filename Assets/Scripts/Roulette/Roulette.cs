@@ -65,13 +65,13 @@ public class Roulette : MonoBehaviour
     {
         for (int i = 0; i < roulettePieceData.Length; ++i)
         {
-            roulettePieceData[i].index = i;
-            if (roulettePieceData[i].chance <= 0)
+            roulettePieceData[i].Index = i;
+            if (roulettePieceData[i].Chance <= 0)
             {
-                roulettePieceData[i].index = 1;
+                roulettePieceData[i].Index = 1;
             }
-            accumulateWeight += roulettePieceData[i].chance;
-            roulettePieceData[i].weight = accumulateWeight;
+            accumulateWeight += roulettePieceData[i].Chance;
+            roulettePieceData[i].Weight = accumulateWeight;
         }
     }
 
@@ -81,7 +81,7 @@ public class Roulette : MonoBehaviour
 
         for (int i = 0; i < roulettePieceData.Length; ++i)
         {
-            if (roulettePieceData[i].weight > weight)
+            if (roulettePieceData[i].Weight > weight)
             {
                 return i;
             }

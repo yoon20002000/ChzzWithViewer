@@ -21,6 +21,6 @@ public class RouletteDemo : MonoBehaviour
     private void EndOfSpin(RoulettePieceData selectedPiece)
     {
         spinButton.interactable = true;
-        Debug.Log($"Selected index : {selectedPiece.index} : {selectedPiece.description}");
+        Debug.Log($"Selected index : {selectedPiece.Index} : {selectedPiece.Description}");
     }
 }

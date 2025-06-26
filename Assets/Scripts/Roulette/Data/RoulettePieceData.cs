@@ -1,16 +1,20 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [Serializable]
 public class RoulettePieceData
 {
-    public string description;
-    
-    [Range(1,100)]
-    public int chance = 100;
+    public RoulettePieceData(string description, int chance)
+    {
+        
+    }
+    public string Description;
+
+    public int Chance;
     
     [HideInInspector]
-    public int index;
+    public int Index;
     [HideInInspector] 
-    public int weight;
+    public int Weight;
 }

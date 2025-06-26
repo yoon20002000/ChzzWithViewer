@@ -8,6 +8,6 @@ public class RoulettePiece : MonoBehaviour
 
    public void Setup(RoulettePieceData pieceData)
    {
-      description.SetText(pieceData.description);
+      description.SetText(pieceData.Description);
    }
 }
