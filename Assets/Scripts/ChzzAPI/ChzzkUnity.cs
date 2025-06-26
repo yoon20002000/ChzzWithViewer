@@ -8,7 +8,6 @@ using UnityEngine.Networking;
 using WebSocketSharp;
 using System.Collections;
 using Cysharp.Threading.Tasks;
-using ChzzAPI; // 자료구조 참조
 
 namespace ChzzAPI
 {
@@ -30,8 +29,7 @@ public class ChzzkUnity : MonoBehaviour
 
     string cid;
     string token;
-    public string channel;
-    public string channelIdFilePath = "ChzzAPI/ChannelId.txt"; // 불러올 txt 파일 경로
+    public string channel { get; private set; }
 
     WebSocket socket = null;
 
@@ -178,13 +176,15 @@ public class ChzzkUnity : MonoBehaviour
         return accessTokenResult;
     }
 
-    public async UniTask Connect()
+    public async UniTask Connect(string channelId = default)
     {
         if (socket != null && socket.IsAlive)
         {
             socket.Close();
             socket = null;
         }
+
+        channel = channelId;
 
         LiveStatus liveStatus = await GetLiveStatus(channel);
         cid = liveStatus.content.chatChannelId;
@@ -206,12 +206,12 @@ public class ChzzkUnity : MonoBehaviour
         await UniTask.CompletedTask;
     }
 
-    public void Connect(string channelId)
-    {
-        channel = channelId;
-        Connect().Forget();
-    }
-
+    // public void Connect(string channelId)
+    // {
+    //     channel = channelId;
+    //     Connect().Forget();
+    // }
+    
     public void StopListening()
     {
         if (socket == null) return;
@@ -224,39 +224,13 @@ public class ChzzkUnity : MonoBehaviour
     /// 파일의 첫 줄을 ChannelID로 사용합니다.
     /// 유저가 직접 txt 파일을 수정할 수 있습니다.
     /// </summary>
-    public void LoadChannelIdFromFile()
-    {
-        if (string.IsNullOrEmpty(channelIdFilePath))
-        {
-            Debug.LogError("channelIdFilePath가 지정되지 않았습니다.");
-            return;
-        }
-        try
-        {
-            string fullPath = System.IO.Path.Combine(Application.dataPath, channelIdFilePath);
-            if (!System.IO.File.Exists(fullPath))
-            {
-                Debug.LogError($"ChannelID 파일이 존재하지 않습니다: {fullPath}");
-                return;
-            }
-            string[] lines = System.IO.File.ReadAllLines(fullPath);
-            if (lines.Length > 0)
-            {
-                channel = lines[0].Trim();
-                Debug.Log($"ChannelID를 파일에서 불러왔습니다: {channel}");
-            }
-            else
-            {
-                Debug.LogError("ChannelID 파일이 비어 있습니다.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"ChannelID 파일 읽기 오류: {ex.Message}");
-        }
-    }
-
+    
     #endregion Public Methods
+
+    #region Private Methods
+    
+    
+    #endregion
 
     #region Socket Event Handlers
 
