@@ -14,6 +14,8 @@ namespace ChzzAPI
         [Header("ChzzAPI")] [SerializeField] private ChzzkUnity chzzkUnity;
         private const string ROULETTE_COMMAND = "[룰렛]";
 
+        private RouletteDataManager rouletteDataManager = new();
+        
         [Header("UI Buttons")] 
         [SerializeField] private Button startCounting;
         [SerializeField] private Button stopCounting;
@@ -35,15 +37,13 @@ namespace ChzzAPI
         [SerializeField] private Transform spinningRoulette;
         [SerializeField] private AnimationCurve spinningCurve;
         [SerializeField] private int spinDuration;
-
-        private readonly List<RoulettePieceData> rouletteData = new(100);
+        
         private readonly List<RoulettePiece> roulettePieces = new();
         private readonly List<RectTransform> linePieces = new();
 
-        private int totalWeight = 0;
-        private int selectedIndex = 0;
         private int countPerAmount = 1000;
         private bool isSpinning = false;
+        private int selectedIndex = -1;
 
         private void Awake()
         {
@@ -51,18 +51,28 @@ namespace ChzzAPI
             stopCounting.onClick.AddListener(OnClickStopCounting);
             addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
             removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
+            // 추후 제거 필요
+            InitializeGame();
+        }
+
+        private void OnDestroy()
+        {
+            // 추후 제거 필요
+            DeinitializeGame();
         }
 
         private void InitializeGame()
         {
-            totalWeight = 0;
-            rouletteData.Clear();
             uiActiveSetting(false);
+            rouletteDataManager.Clear();
+            rouletteDataManager.OnPiecesDataUpdate.AddListener(UpdateRoulettePieceRotation);
         }
 
         private void DeinitializeGame()
         {
-            rouletteData.Clear();
+            rouletteDataManager.Clear();
+            rouletteDataManager.OnPiecesDataUpdate.RemoveListener(UpdateRoulettePieceRotation);
+            
             UnbindEvent();
 
             foreach (var piece in roulettePieces)
@@ -80,55 +90,24 @@ namespace ChzzAPI
 
         private void AddRouletteData(string key, int count)
         {
-            var pieceData = rouletteData.Find(x => x.Description == key);
-            if (pieceData == null)
-            {
-                rouletteData.Add(new RoulettePieceData(key, count));
-            }
-            else
-            {
-                pieceData.Chance += count;
-            }
-
-            OnPieceDataChanged();
+            rouletteDataManager.AddPiece(key, count);
         }
 
         private void RemoveRouletteData(string key, int count)
         {
-            var pieceData = rouletteData.Find(x => x.Description == key);
-            if (pieceData == null)
-            {
-                return;
-            }
-
-            pieceData.Chance -= count;
-            if (pieceData.Chance <= 0)
-            {
-                rouletteData.Remove(pieceData);
-            }
-
-            OnPieceDataChanged();
+            rouletteDataManager.RemovePiece(key,count);
         }
-
-        private void UpdateWeight()
-        {
-            totalWeight = 0;
-            foreach (var pieceData in rouletteData)
-            {
-                totalWeight += pieceData.Chance;
-                pieceData.Weight = totalWeight;
-            }
-        }
-
+        
         private void UpdateRoulettePieceRotation()
         {
-            while (roulettePieces.Count < rouletteData.Count)
+            int rouletteDataCount = rouletteDataManager.PiecesCount;
+            while (roulettePieces.Count < rouletteDataCount)
             {
                 var piece = Instantiate(piecePrefab, pieceParent.position, Quaternion.identity, pieceParent);
                 roulettePieces.Add(piece.GetComponent<RoulettePiece>());
             }
 
-            while (linePieces.Count < rouletteData.Count)
+            while (linePieces.Count < rouletteDataCount)
             {
                 var line = Instantiate(linePrefab, lineParent.position, Quaternion.identity, lineParent);
                 linePieces.Add(line as RectTransform);
@@ -143,32 +122,32 @@ namespace ChzzAPI
                 line.gameObject.SetActive(false);
             }
 
-            for (int i = 0; i < rouletteData.Count; ++i)
+            for (int i = 0; i < rouletteDataCount; ++i)
             {
                 var piece = roulettePieces[i];
-                piece.Setup(rouletteData[i]);
+                piece.Setup(rouletteDataManager[i]);
 
                 if (piece.transform is RectTransform rectTransform)
                 {
                     rectTransform.localRotation = Quaternion.identity;
                     if (roulettePieces.Count > 1)
                     {
-                        rectTransform.localRotation = Quaternion.Euler(0, 0, GetPieceAngle(rouletteData[i].Weight, rouletteData[i].Chance));
+                        rectTransform.localRotation = Quaternion.Euler(0, 0, GetPieceAngle(rouletteDataManager[i].Weight, rouletteDataManager[i].Chance));
                     }
                 }
 
                 piece.gameObject.SetActive(true);
             }
 
-            if (rouletteData.Count > 1)
+            if (rouletteDataCount > 1)
             {
-                for (int i = 0; i < rouletteData.Count; ++i)
+                for (int i = 0; i < rouletteDataCount; ++i)
                 {
                     var line = linePieces[i];
                     line.localRotation = Quaternion.identity;
 
-                    float angle = GetPieceAngle(rouletteData[i].Weight, rouletteData[i].Chance);
-                    float chanceAngle = 360f * rouletteData[i].Chance / totalWeight;
+                    float angle = GetPieceAngle(rouletteDataManager[i].Weight, rouletteDataManager[i].Chance);
+                    float chanceAngle = 360f * rouletteDataManager[i].Chance / rouletteDataManager.TotalWeight;
                     line.localRotation = Quaternion.Euler(0, 0, angle + chanceAngle * 0.5f);
 
                     line.gameObject.SetActive(true);
@@ -178,23 +157,16 @@ namespace ChzzAPI
 
         private float GetPieceAngle(float weight, float chance)
         {
-            float angle = 360f * weight / totalWeight;
-            float chanceAngle = 360f * chance / totalWeight;
+            float angle = 360f * weight / rouletteDataManager.TotalWeight;
+            float chanceAngle = 360f * chance / rouletteDataManager.TotalWeight;
             return angle - chanceAngle * 0.5f;
         }
-
-        private void OnPieceDataChanged()
-        {
-            UpdateWeight();
-            UpdateRoulettePieceRotation();
-        }
-
         public void Spin(UnityAction<RoulettePieceData> callback = null)
         {
             if (isSpinning) return;
 
             selectedIndex = GetRandomIndex();
-            float angle = 360f * rouletteData[selectedIndex].Chance / totalWeight;
+            float angle = 360f * rouletteDataManager[selectedIndex].Chance / rouletteDataManager.TotalWeight;
             float half = angle * 0.5f;
             float padding = half * 0.25f;
 
@@ -218,15 +190,15 @@ namespace ChzzAPI
             }
 
             isSpinning = false;
-            callback?.Invoke(rouletteData[selectedIndex]);
+            callback?.Invoke(rouletteDataManager[selectedIndex]);
         }
 
         private int GetRandomIndex()
         {
-            int rand = Random.Range(0, totalWeight);
-            for (int i = 0; i < rouletteData.Count; ++i)
+            int rand = Random.Range(0, rouletteDataManager.TotalWeight);
+            for (int i = 0; i < rouletteDataManager.PiecesCount; ++i)
             {
-                if (rouletteData[i].Weight > rand)
+                if (rouletteDataManager[i].Weight > rand)
                     return i;
             }
             return 0;
