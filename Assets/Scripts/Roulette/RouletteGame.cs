@@ -54,7 +54,6 @@ namespace ChzzAPI
             addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
             removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
             startSpinButton.onClick.AddListener(OnClickedSpin);
-            // 추후 제거 필요
             InitializeGame();
         }
         private void OnDestroy()
@@ -68,6 +67,7 @@ namespace ChzzAPI
             uiActiveSetting(false);
             rouletteDataManager.Clear();
             rouletteDataManager.OnPiecesDataUpdate.AddListener(UpdateRoulettePieceRotation);
+            chzzkUnity.RegisterEventListener(this);
         }
 
         private void DeinitializeGame()
@@ -94,6 +94,7 @@ namespace ChzzAPI
             roulettePieces.Clear();
             linePieces.Clear();
             
+            chzzkUnity.UnregisterEventListener();
             chzzkUnity.StopListening();
         }
 
@@ -220,7 +221,9 @@ namespace ChzzAPI
             for (int i = 0; i < rouletteDataManager.PiecesCount; ++i)
             {
                 if (rouletteDataManager[i].Weight > rand)
+                {
                     return i;
+                }
             }
             return 0;
         }
@@ -234,9 +237,7 @@ namespace ChzzAPI
             }
 
             await StartConnectChannel(channelID);
-            chzzkUnity.RegisterEventListener(this);
-
-            uiActiveSetting(true);
+            
         }
 
         private void OnClickStopCounting()
@@ -308,8 +309,16 @@ namespace ChzzAPI
             Debug.Log($"룰렛 키 추가 : {key}, {count}");
         }
 
-        public void OnOpen() => InitializeGame();
-        public void OnClose() => DeinitializeGame();
+        public void OnOpen()
+        {
+            uiActiveSetting(true);
+            Debug.LogError("연결 완료");
+        }
+        public void OnClose()
+        {
+            DeinitializeGame();
+            uiActiveSetting(false);
+        }
 
         #endregion
     }
