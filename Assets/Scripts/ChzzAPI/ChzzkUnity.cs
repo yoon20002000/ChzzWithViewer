@@ -78,8 +78,10 @@ namespace ChzzAPI
             {
                 onClose?.Invoke();
                 eventListener?.OnClose();
-                if (!reOpenTrying)
+                if (socket != null && !reOpenTrying)
+                {
                     StartCoroutine(TryReOpen());
+                }
                 closedCount--;
             }
         }

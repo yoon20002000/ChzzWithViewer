@@ -49,11 +49,6 @@ namespace ChzzAPI
 
         private void Awake()
         {
-            startCountingButton.onClick.AddListener(OnClickStartCounting);
-            stopCountingButton.onClick.AddListener(OnClickStopCounting);
-            addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
-            removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
-            startSpinButton.onClick.AddListener(OnClickedSpin);
             InitializeGame();
         }
         private void OnDestroy()
@@ -64,34 +59,36 @@ namespace ChzzAPI
 
         private void InitializeGame()
         {
+            startCountingButton.onClick.AddListener(OnClickStartCounting);
+            stopCountingButton.onClick.AddListener(OnClickStopCounting);
+            addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
+            removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
+            startSpinButton.onClick.AddListener(OnClickedSpin);
+            
             uiActiveSetting(false);
             rouletteDataManager.Clear();
-            rouletteDataManager.OnPiecesDataUpdate.AddListener(UpdateRoulettePieceRotation);
+            
             chzzkUnity.RegisterEventListener(this);
         }
 
         private void DeinitializeGame()
         {
-            rouletteDataManager.Clear();
-            rouletteDataManager.OnPiecesDataUpdate.RemoveListener(UpdateRoulettePieceRotation);
-            
             foreach (var piece in roulettePieces)
             {
-                if (piece)
+                if (piece != null)
                 {
                     Destroy(piece.gameObject);
                 }
             }
+            roulettePieces.Clear();
             
             foreach (var line in linePieces)
             {
-                if (line)
+                if (line != null)
                 {
                     Destroy(line.gameObject);
                 }
             }
-
-            roulettePieces.Clear();
             linePieces.Clear();
             
             chzzkUnity.UnregisterEventListener();
@@ -101,13 +98,17 @@ namespace ChzzAPI
         private void AddRouletteData(string key, int count)
         {
             rouletteDataManager.AddPiece(key, count);
+            // UI 업데이트를 메인 스레드에서 실행
+            UnityMainThreadDispatcher.Instance.Enqueue(UpdateRoulettePieceRotation);
         }
 
         private void RemoveRouletteData(string key, int count)
         {
-            rouletteDataManager.RemovePiece(key,count);
+            rouletteDataManager.RemovePiece(key, count);
+            // UI 업데이트를 메인 스레드에서 실행
+            UnityMainThreadDispatcher.Instance.Enqueue(UpdateRoulettePieceRotation);
         }
-        
+
         private void UpdateRoulettePieceRotation()
         {
             int rouletteDataCount = rouletteDataManager.PiecesCount;
@@ -282,7 +283,29 @@ namespace ChzzAPI
         }
         #region IChzzAPIEvents
 
-        public void OnMessage(Profile profile, string message) { }
+        public void OnMessage(Profile profile, string message)
+        {
+            // if (string.IsNullOrWhiteSpace(message))
+            // {
+            //     return;
+            // }
+            //
+            // var words = message.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            // if (words.Length < 2 || words[0] != ROULETTE_COMMAND)
+            // {
+            //     return;
+            // }
+            //
+            // string key = words[1];
+            // if (string.IsNullOrWhiteSpace(key))
+            // {
+            //     return;
+            // }
+            //
+            // int count = 1;
+            // AddRouletteData(key, count);
+            // Debug.Log($"룰렛 키 추가 : {key}, {count}");
+        }
         public void OnSubscription(Profile profile, SubscriptionExtras subscription) { }
 
         public void OnDonation(Profile profile, string message, DonationExtras donation)
@@ -312,12 +335,13 @@ namespace ChzzAPI
         public void OnOpen()
         {
             uiActiveSetting(true);
-            Debug.LogError("연결 완료");
+            Debug.Log("연결 완료");
         }
         public void OnClose()
         {
             DeinitializeGame();
             uiActiveSetting(false);
+            Debug.Log("연결 실패");
         }
 
         #endregion

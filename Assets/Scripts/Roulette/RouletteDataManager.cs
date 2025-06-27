@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
 
 namespace ChzzAPI
 {
@@ -23,8 +21,6 @@ namespace ChzzAPI
                 return pieces[index];
             }
         }
-
-        public UnityEvent OnPiecesDataUpdate = new();
         
         // 조각 추가
         public void AddPiece(string key, int weight)
@@ -45,7 +41,6 @@ namespace ChzzAPI
                 piece.Chance += weight;
             }
             UpdateWeight();
-            OnPiecesDataUpdate?.Invoke();
         }
 
         // 조각 가중치 감소/삭제
@@ -64,7 +59,6 @@ namespace ChzzAPI
                     pieces.Remove(piece);
                 }
                 UpdateWeight();
-                OnPiecesDataUpdate?.Invoke();
             }
         }
 

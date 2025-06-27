@@ -3496,6 +3496,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1192216337}
   - component: {fileID: 1192216336}
+  - component: {fileID: 1192216338}
   m_Layer: 0
   m_Name: ChzzAPI
   m_TagString: Untagged
@@ -3517,19 +3518,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   onMessage:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1414471401}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   onDonation:
     m_PersistentCalls:
       m_Calls: []
@@ -3557,6 +3546,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1192216338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1192216334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf9c0a8f88010f4b9472275349d3601, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1199501719
 GameObject:
   m_ObjectHideFlags: 0
