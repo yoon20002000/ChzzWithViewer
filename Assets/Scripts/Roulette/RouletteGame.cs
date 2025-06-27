@@ -235,7 +235,7 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
             
             if (roulettePieces.Count > 1)
             {
-                rectTran.localRotation = Quaternion.Euler(0, 0, getPieceAngle((float)rouletteData[index].Weight, (float)rouletteData[index].Chance));    
+                rectTran.localRotation = Quaternion.Euler(0, 0, getPieceAngle(rouletteData[index].Weight, rouletteData[index].Chance));    
             }
             
             linePieces[index].gameObject.SetActive(false);
@@ -247,7 +247,7 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
             {
                 linePieces[index].localRotation =  Quaternion.identity;
                 float chanceAngle = 360 * ((float)rouletteData[index].Chance / totalWeight);
-                float targetAngle = getPieceAngle((float)rouletteData[index].Weight, (float)rouletteData[index].Chance);
+                float targetAngle = getPieceAngle(rouletteData[index].Weight, rouletteData[index].Chance);
                 
                 linePieces[index].localRotation = Quaternion.Euler(0, 0, targetAngle + chanceAngle * .5f);
                 linePieces[index].gameObject.SetActive(true);
