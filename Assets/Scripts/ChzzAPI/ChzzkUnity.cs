@@ -34,7 +34,7 @@ namespace ChzzAPI
         WebSocket socket = null;
 
         float timer = 0f;
-        bool running = false;
+        public bool IsRunning { get; private set; } = false;
 
         #region Callbacks
 
@@ -102,7 +102,7 @@ namespace ChzzAPI
         void FixedUpdate()
         {
             //HOTFIX : 성능저하가 너무 심해서 Socket.isAlive 체크 제거
-            if (running)
+            if (IsRunning)
             {
                 timer += Time.unscaledDeltaTime;
                 if (timer > 15)
@@ -230,17 +230,12 @@ namespace ChzzAPI
             await UniTask.CompletedTask;
         }
 
-        // public void Connect(string channelId)
-        // {
-        //     channel = channelId;
-        //     Connect().Forget();
-        // }
-
         public void StopListening()
         {
             if (socket == null) return;
             socket.Close();
             socket = null;
+            UnregisterEventListener();
         }
 
         /// <summary>
@@ -370,6 +365,7 @@ namespace ChzzAPI
             Debug.Log(e.Code);
             Debug.Log(e);
             closedCount += 1;
+            IsRunning = false;
         }
 
         private void StartChat(object sender, EventArgs e)
@@ -378,7 +374,7 @@ namespace ChzzAPI
             var message =
                 $"{{\"ver\":\"2\",\"cmd\":100,\"svcid\":\"game\",\"cid\":\"{cid}\",\"bdy\":{{\"uid\":null,\"devType\":2001,\"accTkn\":\"{token}\",\"auth\":\"READ\"}},\"tid\":1}}";
             timer = 0;
-            running = true;
+            IsRunning = true;
             socket.Send(message);
             eventListener?.OnOpen();
         }

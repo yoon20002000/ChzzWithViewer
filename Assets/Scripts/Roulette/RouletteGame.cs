@@ -18,7 +18,6 @@ namespace ChzzAPI
         private RouletteDataManager rouletteDataManager = new();
         
         [Header("UI Buttons")] 
-        [SerializeField] private Button channelConnectButton;
         [SerializeField] private Button startCountingButton;
         [SerializeField] private Button stopCountingButton;
         [SerializeField] private Button startSpinButton;
@@ -54,7 +53,6 @@ namespace ChzzAPI
             stopCountingButton.onClick.AddListener(OnClickStopCounting);
             addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
             removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
-            channelConnectButton.onClick.AddListener(OnClickedChannelConnect);
             startSpinButton.onClick.AddListener(OnClickedSpin);
             // 추후 제거 필요
             InitializeGame();
@@ -77,8 +75,6 @@ namespace ChzzAPI
             rouletteDataManager.Clear();
             rouletteDataManager.OnPiecesDataUpdate.RemoveListener(UpdateRoulettePieceRotation);
             
-            UnbindEvent();
-
             foreach (var piece in roulettePieces)
             {
                 if (piece)
@@ -86,6 +82,7 @@ namespace ChzzAPI
                     Destroy(piece.gameObject);
                 }
             }
+            
             foreach (var line in linePieces)
             {
                 if (line)
@@ -96,6 +93,8 @@ namespace ChzzAPI
 
             roulettePieces.Clear();
             linePieces.Clear();
+            
+            chzzkUnity.StopListening();
         }
 
         private void AddRouletteData(string key, int count)
@@ -226,16 +225,25 @@ namespace ChzzAPI
             return 0;
         }
 
-        private void OnClickStartCounting()
+        private async void OnClickStartCounting()
         {
-            BindEvent();
+            string channelID = channelInputField.text;
+            if (string.IsNullOrEmpty(channelID))
+            {
+                return;
+            }
+
+            await StartConnectChannel(channelID);
+            chzzkUnity.RegisterEventListener(this);
+
             uiActiveSetting(true);
         }
 
         private void OnClickStopCounting()
         {
-            UnbindEvent();
             uiActiveSetting(false);
+            chzzkUnity.UnregisterEventListener();
+            chzzkUnity.StopListening();
         }
 
         private void OnClickedAddRouletteData()
@@ -249,16 +257,6 @@ namespace ChzzAPI
             if (!int.TryParse(countInputField.text, out int count) || count <= 0) return;
             RemoveRouletteData(keyInputField.text, count);
         }
-        private async void OnClickedChannelConnect()
-        {
-            string channelID = channelInputField.text;
-            if (string.IsNullOrEmpty(channelID))
-            {
-                return;
-            }
-
-            await StartConnectChannel(channelID);
-        }
 
         private async Task StartConnectChannel(string channelID)
         {
@@ -271,25 +269,6 @@ namespace ChzzAPI
             stopCountingButton.gameObject.SetActive(isCounting);
             startSpinButton.gameObject.SetActive(!isCounting);
         }
-
-        private void BindEvent()
-        {
-            chzzkUnity.onMessage.AddListener(OnMessage);
-            chzzkUnity.onDonation.AddListener(OnDonation);
-            chzzkUnity.onOpen.AddListener(OnOpen);
-            chzzkUnity.onClose.AddListener(OnClose);
-            chzzkUnity.onSubscription.AddListener(OnSubscription);
-        }
-
-        private void UnbindEvent()
-        {
-            chzzkUnity.onMessage.RemoveListener(OnMessage);
-            chzzkUnity.onDonation.RemoveListener(OnDonation);
-            chzzkUnity.onOpen.RemoveListener(OnOpen);
-            chzzkUnity.onClose.RemoveListener(OnClose);
-            chzzkUnity.onSubscription.RemoveListener(OnSubscription);
-        }
-
         private void OnClickedSpin()
         {
             Spin((data) =>
