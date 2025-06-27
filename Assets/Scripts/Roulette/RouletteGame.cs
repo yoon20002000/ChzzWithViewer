@@ -77,11 +77,18 @@ namespace ChzzAPI
 
             foreach (var piece in roulettePieces)
             {
-                Destroy(piece.gameObject);
+                if (piece.gameObject)
+                {
+                    Destroy(piece.gameObject);    
+                }
+                
             }
             foreach (var line in linePieces)
             {
-                Destroy(line.gameObject);
+                if (line.gameObject)
+                {
+                    Destroy(line.gameObject);
+                }
             }
 
             roulettePieces.Clear();
