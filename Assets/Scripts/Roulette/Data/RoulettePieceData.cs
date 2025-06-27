@@ -7,7 +7,8 @@ public class RoulettePieceData
 {
     public RoulettePieceData(string description, int chance)
     {
-        
+        Description = description;
+        Chance = chance;
     }
     public string Description;
 

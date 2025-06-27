@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using ChzzAPI;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -27,8 +28,11 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
     
     private void Awake()
     {
-        startCounting.onClick.AddListener(OnClick_StartCounting);
-        stopCounting.onClick.AddListener(OnClick_StopCounting);
+        startCounting.onClick.AddListener(onClick_StartCounting);
+        stopCounting.onClick.AddListener(onClick_StopCounting);
+        
+        addRouletteButton.onClick.AddListener(onClicked_AddRouletteData);
+        removeRouletteButton.onClick.AddListener(onClicked_RemoveRouletteData);
     }
 
     public void addRouletteDataOnce(string key)
@@ -53,6 +57,18 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
         rouletteData.Clear();
         // chzz api 종료
         unbindEvent();
+        // 제거
+        for (int i = roulettePieces.Count - 1; i > 0 ; --i)
+        {
+            Destroy(roulettePieces[i].gameObject);
+        }
+        for (int i = linePieces.Count - 1; i > 0 ; --i)
+        {
+            Destroy(linePieces[i].gameObject);
+        }
+        
+        roulettePieces.Clear();
+        linePieces.Clear();
     }
 
     private void addRouletteData(string key, int count)
@@ -173,41 +189,153 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
 
     void updateWeight()
     {
+        totalWeight = 0;
         foreach (var pieceData in rouletteData)
         {
             totalWeight += pieceData.Chance;
             pieceData.Weight = totalWeight;
         }
     }
+    
+    List<RoulettePiece> roulettePieces = new List<RoulettePiece>();
+    List<RectTransform> linePieces = new List<RectTransform>();
+    void updateRoulettPieceRotatioin()
+    {
+        if (roulettePieces.Count < rouletteData.Count)
+        {
+            int makeCount = rouletteData.Count - roulettePieces.Count;
+            
+            for (int count = 0; count < makeCount; count++)
+            {
+                Transform piece = Instantiate(piecePrefab, pieceParent.position, Quaternion.identity, pieceParent);
+                roulettePieces.Add(piece.GetComponent<RoulettePiece>());
+            }
+        }
+
+        if (linePieces.Count < rouletteData.Count)
+        {
+            int makeCount = rouletteData.Count - linePieces.Count;
+            
+            for (int count = 0; count < makeCount; count++)
+            {
+                Transform line = Instantiate(linePrefab, lineParent.position, Quaternion.identity, lineParent);
+                linePieces.Add(line as RectTransform);
+            }
+        }
+
+        for (int index = 0; index < roulettePieces.Count; ++index)
+        {
+            roulettePieces[index].Setup(rouletteData[index]);
+            RectTransform rectTran = (roulettePieces[index].gameObject.transform as RectTransform);
+            if (rectTran == null)
+            {
+                continue;
+            }
+            rectTran.localRotation = Quaternion.identity;
+            
+            if (roulettePieces.Count > 1)
+            {
+                rectTran.localRotation = Quaternion.Euler(0, 0, getPieceAngle((float)rouletteData[index].Weight, (float)rouletteData[index].Chance));    
+            }
+            
+            linePieces[index].gameObject.SetActive(false);
+        }
+
+        if (linePieces.Count > 1)
+        {
+            for (int index = 0; index < linePieces.Count; ++index)
+            {
+                linePieces[index].localRotation =  Quaternion.identity;
+                float chanceAngle = 360 * ((float)rouletteData[index].Chance / totalWeight);
+                float targetAngle = getPieceAngle((float)rouletteData[index].Weight, (float)rouletteData[index].Chance);
+                
+                linePieces[index].localRotation = Quaternion.Euler(0, 0, targetAngle + chanceAngle * .5f);
+                linePieces[index].gameObject.SetActive(true);
+            }    
+        }
+    }
+    private float getPieceAngle(float weight, float change)
+    {
+        float angle = 360 * (weight / totalWeight);
+        float chanceAngle = 360 * (change / totalWeight);
+        
+        return angle - chanceAngle * .5f;
+    }
     void onPieceDataChanged()
     {
         updateWeight();
 
-        // Piece UI 위치 조정
+        updateRoulettPieceRotatioin();
+    }
+    public void Spin(UnityAction<RoulettePieceData> action = null)
+    {
+        if (isSpinning)
+        {
+            return;
+        }
+
+        selectedIndex = GetRandomIndex();
+
+        float angle = 360 / ((float)rouletteData[selectedIndex].Weight / totalWeight);
+        float halfPieceAngle = angle * .5f;
+        float halfPieceAngleWithPaddings = halfPieceAngle - (halfPieceAngle * .25f);
+        float leftOffset = (angle - halfPieceAngleWithPaddings) % 360;
+        float rightOffset = (angle + halfPieceAngleWithPaddings) % 360;
+        float randomAngle  = Random.Range(leftOffset,rightOffset);
+        
+        int rotateSpeed = 2;
+        float targetAngle = (randomAngle + 360 * spinDuration * rotateSpeed);
+        
+        isSpinning = true;
+        StartCoroutine(OnSpin(targetAngle, action));
     }
     #region UI
 
-    private void OnClick_StartCounting()
+    private void onClick_StartCounting()
     {
         bindEvent();
         uiActiveSetting(true);
     }
 
-    private void OnClick_StopCounting()
+    private void onClick_StopCounting()
     {
         unbindEvent();
         uiActiveSetting(false);
+    }
+
+    [Space(10)]
+    [SerializeField]
+    private TMP_InputField keyInputField;
+    [SerializeField]
+    private TMP_InputField countInputField;
+    [SerializeField]
+    private Button addRouletteButton;
+    [SerializeField]
+    private Button removeRouletteButton;
+    private void onClicked_AddRouletteData()
+    {
+        string key = keyInputField.text;
+        string strCount = countInputField.text;
+        
+        addRouletteData(key, int.Parse(strCount));
+    }
+
+    private void onClicked_RemoveRouletteData()
+    {
+        string key = keyInputField.text;
+        string strCount = countInputField.text;
+        
+        removeRouletteData(key, int.Parse(strCount));
     }
 
     private void uiActiveSetting(bool isCounting)
     {
         startCounting.gameObject.SetActive(!isCounting);
         stopCounting.gameObject.SetActive(isCounting);
-        spin.gameObject.SetActive(!isCounting);
+        startSpin.gameObject.SetActive(!isCounting);
     }
   
-    [SerializeField] 
-    private Button spin;
+
     [SerializeField]
     private int spinDuration;
     [SerializeField]

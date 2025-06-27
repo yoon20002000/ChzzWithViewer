@@ -55,9 +55,9 @@ public class ChzzkUnity : MonoBehaviour
 
     private void Start()
     {
-        onMessage.AddListener(DebugMessage);
-        onDonation.AddListener(DebugDonation);
-        onSubscription.AddListener(DebugSubscription);
+        //onMessage.AddListener(DebugMessage);
+        //onDonation.AddListener(DebugDonation);
+        //onSubscription.AddListener(DebugSubscription);
     }
     private void Update()
     {
