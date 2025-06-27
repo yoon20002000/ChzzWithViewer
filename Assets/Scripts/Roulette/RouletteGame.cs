@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,13 +18,15 @@ namespace ChzzAPI
         private RouletteDataManager rouletteDataManager = new();
         
         [Header("UI Buttons")] 
-        [SerializeField] private Button startCounting;
-        [SerializeField] private Button stopCounting;
-        [SerializeField] private Button startSpin;
+        [SerializeField] private Button channelConnectButton;
+        [SerializeField] private Button startCountingButton;
+        [SerializeField] private Button stopCountingButton;
+        [SerializeField] private Button startSpinButton;
         [SerializeField] private Button addRouletteButton;
         [SerializeField] private Button removeRouletteButton;
 
         [Header("UI Inputs")]
+        [SerializeField] private TMP_InputField channelInputField;
         [SerializeField] private TMP_InputField keyInputField;
         [SerializeField] private TMP_InputField countInputField;
 
@@ -47,14 +50,16 @@ namespace ChzzAPI
 
         private void Awake()
         {
-            startCounting.onClick.AddListener(OnClickStartCounting);
-            stopCounting.onClick.AddListener(OnClickStopCounting);
+            startCountingButton.onClick.AddListener(OnClickStartCounting);
+            stopCountingButton.onClick.AddListener(OnClickStopCounting);
             addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
             removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
+            channelConnectButton.onClick.AddListener(OnClickedChannelConnect);
+            
             // 추후 제거 필요
             InitializeGame();
         }
-
+        
         private void OnDestroy()
         {
             // 추후 제거 필요
@@ -234,12 +239,27 @@ namespace ChzzAPI
             if (!int.TryParse(countInputField.text, out int count) || count <= 0) return;
             RemoveRouletteData(keyInputField.text, count);
         }
+        private async void OnClickedChannelConnect()
+        {
+            string channelID = channelInputField.text;
+            if (string.IsNullOrEmpty(channelID))
+            {
+                return;
+            }
+
+            await StartConnectChannel(channelID);
+        }
+
+        private async Task StartConnectChannel(string channelID)
+        {
+            await chzzkUnity.Connect(channelID);
+        }
 
         private void uiActiveSetting(bool isCounting)
         {
-            startCounting.gameObject.SetActive(!isCounting);
-            stopCounting.gameObject.SetActive(isCounting);
-            startSpin.gameObject.SetActive(!isCounting);
+            startCountingButton.gameObject.SetActive(!isCounting);
+            stopCountingButton.gameObject.SetActive(isCounting);
+            startSpinButton.gameObject.SetActive(!isCounting);
         }
 
         private void BindEvent()
