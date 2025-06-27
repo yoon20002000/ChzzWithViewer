@@ -55,11 +55,10 @@ namespace ChzzAPI
             addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
             removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
             channelConnectButton.onClick.AddListener(OnClickedChannelConnect);
-            
+            startSpinButton.onClick.AddListener(OnClickedSpin);
             // 추후 제거 필요
             InitializeGame();
         }
-        
         private void OnDestroy()
         {
             // 추후 제거 필요
@@ -82,15 +81,14 @@ namespace ChzzAPI
 
             foreach (var piece in roulettePieces)
             {
-                if (piece.gameObject)
+                if (piece)
                 {
-                    Destroy(piece.gameObject);    
+                    Destroy(piece.gameObject);
                 }
-                
             }
             foreach (var line in linePieces)
             {
-                if (line.gameObject)
+                if (line)
                 {
                     Destroy(line.gameObject);
                 }
@@ -175,16 +173,28 @@ namespace ChzzAPI
         }
         public void Spin(UnityAction<RoulettePieceData> callback = null)
         {
-            if (isSpinning) return;
+            if (isSpinning)
+            {
+                return;
+            }
 
+            if (roulettePieces.Count == 0)
+            {
+                return;
+            }
+
+            spinningRoulette.rotation = Quaternion.identity;
+            
             selectedIndex = GetRandomIndex();
-            float angle = 360f * rouletteDataManager[selectedIndex].Chance / rouletteDataManager.TotalWeight;
-            float half = angle * 0.5f;
+            float angle = GetPieceAngle(rouletteDataManager[selectedIndex].Weight, rouletteDataManager[selectedIndex].Chance); 
+            float change = 360f * rouletteDataManager[selectedIndex].Chance / rouletteDataManager.TotalWeight;
+            float half = change * 0.5f;
             float padding = half * 0.25f;
 
             float randomAngle = Random.Range(angle - padding, angle + padding);
             float targetAngle = randomAngle + 360f * spinDuration * 2;
 
+            Debug.Log($"angle : {angle}  random angle : {randomAngle}calc target angle {targetAngle}");
             isSpinning = true;
             StartCoroutine(SpinCoroutine(targetAngle, callback));
         }
@@ -197,7 +207,7 @@ namespace ChzzAPI
                 time += Time.deltaTime;
                 float percent = time / spinDuration;
                 float z = Mathf.Lerp(0, targetAngle, spinningCurve.Evaluate(percent));
-                spinningRoulette.rotation = Quaternion.Euler(0, 0, z);
+                spinningRoulette.rotation = Quaternion.Euler(0, 0, -z);
                 yield return null;
             }
 
@@ -280,6 +290,16 @@ namespace ChzzAPI
             chzzkUnity.onSubscription.RemoveListener(OnSubscription);
         }
 
+        private void OnClickedSpin()
+        {
+            Spin((data) =>
+            {
+                isSpinning = false;
+                // 추가 연출 과 ui 출력
+                
+                Debug.Log($"선택된 제목 : {data.Description}, 가중치 : {data.Chance}");
+            });
+        }
         #region IChzzAPIEvents
 
         public void OnMessage(Profile profile, string message) { }
