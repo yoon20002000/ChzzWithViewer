@@ -47,6 +47,7 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
 
     private void initializeGame()
     {
+        totalWeight = 0;
         rouletteData.Clear();
         // chzz api 초기화
         uiActiveSetting(false);
@@ -91,6 +92,10 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
         if (roulettePieceData != null)
         {
             roulettePieceData.Chance -= count;
+            if (roulettePieceData.Chance <= 0)
+            {
+                rouletteData.Remove(roulettePieceData);
+            }
             onPieceDataChanged();
         }
     }
@@ -216,7 +221,7 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
         {
             int makeCount = rouletteData.Count - linePieces.Count;
             
-            for (int count = 0; count < makeCount; count++)
+            for (int count = 0; count < makeCount; ++count)
             {
                 Transform line = Instantiate(linePrefab, lineParent.position, Quaternion.identity, lineParent);
                 linePieces.Add(line as RectTransform);
@@ -225,7 +230,20 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
 
         for (int index = 0; index < roulettePieces.Count; ++index)
         {
+            roulettePieces[index].gameObject.SetActive(false);
+            
+        }
+
+        for (int index = 0; index < linePieces.Count; ++index)
+        {
+            linePieces[index].gameObject.SetActive(false);   
+        }
+        
+
+        for (int index = 0; index < rouletteData.Count; ++index)
+        {
             roulettePieces[index].Setup(rouletteData[index]);
+            
             RectTransform rectTran = (roulettePieces[index].gameObject.transform as RectTransform);
             if (rectTran == null)
             {
@@ -237,11 +255,10 @@ public class RouletteGame : MonoBehaviour, IChzzAPIEvents
             {
                 rectTran.localRotation = Quaternion.Euler(0, 0, getPieceAngle(rouletteData[index].Weight, rouletteData[index].Chance));    
             }
-            
-            linePieces[index].gameObject.SetActive(false);
+            roulettePieces[index].gameObject.SetActive(true);
         }
 
-        if (linePieces.Count > 1)
+        if (rouletteData.Count > 1)
         {
             for (int index = 0; index < linePieces.Count; ++index)
             {
