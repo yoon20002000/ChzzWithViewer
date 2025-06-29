@@ -51,18 +51,6 @@ namespace ChzzAPI
         int closedCount = 0;
         bool reOpenTrying = false;
 
-        private IChzzAPIEvents eventListener;
-
-        public void RegisterEventListener(IChzzAPIEvents listener)
-        {
-            eventListener = listener;
-        }
-
-        public void UnregisterEventListener()
-        {
-            eventListener = null;
-        }
-
         #region Unity Methods
 
         private void Start()
@@ -77,7 +65,6 @@ namespace ChzzAPI
             if (closedCount > 0)
             {
                 onClose?.Invoke();
-                eventListener?.OnClose();
                 if (socket != null && !reOpenTrying)
                 {
                     StartCoroutine(TryReOpen());
@@ -127,7 +114,6 @@ namespace ChzzAPI
         private void DefaultMessage(Profile profile, string str)
         {
             Debug.Log($"| [Message] {profile.nickname} - {str}");
-            eventListener?.OnMessage(profile, str);
         }
 
         private void DefaultDonation(Profile profile, string str, DonationExtras donation)
@@ -136,13 +122,11 @@ namespace ChzzAPI
             Debug.Log(donation.isAnonymous
                 ? $"| [Donation] 익명 - {str} - {donation.payAmount}/{donation.payType}"
                 : $"| [Donation] {profile.nickname} - {str} - {donation.payAmount}/{donation.payType}");
-            eventListener?.OnDonation(profile, str, donation);
         }
 
         private void DefaultSubscription(Profile profile, SubscriptionExtras subscription)
         {
             Debug.Log($"| [Subscription] {profile.nickname} - {subscription.month}");
-            eventListener?.OnSubscription(profile, subscription);
         }
 
         #endregion Debug Methods
@@ -237,7 +221,6 @@ namespace ChzzAPI
             if (socket == null) return;
             socket.Close();
             socket = null;
-            UnregisterEventListener();
         }
 
         /// <summary>
@@ -378,7 +361,6 @@ namespace ChzzAPI
             timer = 0;
             IsRunning = true;
             socket.Send(message);
-            eventListener?.OnOpen();
         }
 
         #endregion Socket Event Handlers

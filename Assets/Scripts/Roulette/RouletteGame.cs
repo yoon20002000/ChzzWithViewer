@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace ChzzAPI
 {
-    public class RouletteGame : MonoBehaviour, IChzzAPIEvents
+    public class RouletteGame : MonoBehaviour
     {
         [Header("ChzzAPI")] [SerializeField] private ChzzkUnity chzzkUnity;
         private const string ROULETTE_COMMAND = "[룰렛]";
@@ -47,12 +47,24 @@ namespace ChzzAPI
         private bool isSpinning = false;
         private int selectedIndex = -1;
 
+        public UnityEvent<IReadOnlyList<RoulettePieceData>> OnUpdateRoulettePieces = new();
+        
         private void Awake()
         {
             InitializeGame();
+            chzzkUnity.onOpen.AddListener(OnOpen);
+            chzzkUnity.onClose.AddListener(OnClose);
+            chzzkUnity.onMessage.AddListener(OnMessage);
+            chzzkUnity.onDonation.AddListener(OnDonation);
+            chzzkUnity.onSubscription.AddListener(OnSubscription);
         }
         private void OnDestroy()
         {
+            chzzkUnity.onOpen.RemoveListener(OnOpen);
+            chzzkUnity.onClose.RemoveListener(OnClose);
+            chzzkUnity.onMessage.RemoveListener(OnMessage);
+            chzzkUnity.onDonation.RemoveListener(OnDonation);
+            chzzkUnity.onSubscription.RemoveListener(OnSubscription);
             // 추후 제거 필요
             DeinitializeGame();
         }
@@ -67,8 +79,6 @@ namespace ChzzAPI
             
             uiActiveSetting(false);
             rouletteDataManager.Clear();
-            
-            chzzkUnity.RegisterEventListener(this);
         }
 
         private void DeinitializeGame()
@@ -90,8 +100,6 @@ namespace ChzzAPI
                 }
             }
             linePieces.Clear();
-            
-            chzzkUnity.UnregisterEventListener();
             chzzkUnity.StopListening();
         }
 
@@ -99,14 +107,20 @@ namespace ChzzAPI
         {
             rouletteDataManager.AddPiece(key, count);
             // UI 업데이트를 메인 스레드에서 실행
-            UnityMainThreadDispatcher.Instance.Enqueue(UpdateRoulettePieceRotation);
+            UnityMainThreadDispatcher.Instance.Enqueue(UpdateRoulettePieceUI);
         }
 
         private void RemoveRouletteData(string key, int count)
         {
             rouletteDataManager.RemovePiece(key, count);
             // UI 업데이트를 메인 스레드에서 실행
-            UnityMainThreadDispatcher.Instance.Enqueue(UpdateRoulettePieceRotation);
+            UnityMainThreadDispatcher.Instance.Enqueue(UpdateRoulettePieceUI);
+        }
+
+        private void UpdateRoulettePieceUI()
+        {
+            UpdateRoulettePieceRotation();
+            OnUpdateRoulettePieces?.Invoke(rouletteDataManager.Pieces);
         }
 
         private void UpdateRoulettePieceRotation()
@@ -188,8 +202,8 @@ namespace ChzzAPI
             
             selectedIndex = GetRandomIndex();
             float angle = GetPieceAngle(rouletteDataManager[selectedIndex].Weight, rouletteDataManager[selectedIndex].Chance); 
-            float change = 360f * rouletteDataManager[selectedIndex].Chance / rouletteDataManager.TotalWeight;
-            float half = change * 0.5f;
+            float chance = 360f * rouletteDataManager[selectedIndex].Chance / rouletteDataManager.TotalWeight;
+            float half = chance * 0.5f;
             float padding = half * 0.25f;
 
             float randomAngle = Random.Range(angle - padding, angle + padding);
@@ -244,7 +258,6 @@ namespace ChzzAPI
         private void OnClickStopCounting()
         {
             uiActiveSetting(false);
-            chzzkUnity.UnregisterEventListener();
             chzzkUnity.StopListening();
         }
 
