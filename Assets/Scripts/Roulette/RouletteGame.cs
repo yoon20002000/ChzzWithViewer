@@ -47,8 +47,10 @@ namespace ChzzAPI
         private bool isSpinning = false;
         private int selectedIndex = -1;
 
+        [HideInInspector]
         public UnityEvent<IReadOnlyList<RoulettePieceData>> OnUpdateRoulettePieces = new();
-        
+
+        [SerializeField] private UI_ResultPopup resultPopup;
         private void Awake()
         {
             InitializeGame();
@@ -286,11 +288,13 @@ namespace ChzzAPI
         }
         private void OnClickedSpin()
         {
+            startSpinButton.interactable = false;
             Spin((data) =>
             {
                 isSpinning = false;
                 // 추가 연출 과 ui 출력
-                
+                resultPopup.Show(data);
+                startSpinButton.interactable = true;
                 Debug.Log($"선택된 제목 : {data.Description}, 가중치 : {data.Chance}");
             });
         }
