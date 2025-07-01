@@ -1,1 +1,1 @@
-{"bannedWords":[],"enableDevChat":false}
+{"bannedWords":["123","321"],"defaultBannedWords":["fuck","shit","bitch","asshole","bastard","dick","pussy","slut","cunt","faggot","nigger","nigga","rape","kill","die","suck","sucker","dumb","stupid","retard","idiot","gay","lesbian","fag","whore","motherfucker","씨발","시발","ㅅㅂ","ㅂㅅ","병신","ㅄ","개새끼","개쉐끼","새끼","좆","ㅈ같","ㅈㄹ","미친","미쳤","염병","꺼져","닥쳐","죽어","좃같","좃까","좆까","쥐랄","존나","느금","느그엄마","애미","애비","지랄","엿같","팔아","병자","장애인","틀딱","틀딱충"],"enableDevChat":false}

@@ -343,6 +343,11 @@ namespace ChzzAPI
             }
 
             string key = words[1];
+            if (GameSettingManager.ContainBannedWord(key))
+            {
+                return;
+            }
+            
             if (string.IsNullOrWhiteSpace(key))
             {
                 return;

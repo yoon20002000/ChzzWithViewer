@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 public class GameSettingData
 {
-    public List<string> bannedWords = new List<string>();
+    public HashSet<string> bannedWords = new HashSet<string>();
+    public HashSet<string> defaultBannedWords = new HashSet<string>();
     public bool enableDevChat = false;
 }
