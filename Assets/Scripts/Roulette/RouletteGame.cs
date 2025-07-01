@@ -287,6 +287,7 @@ namespace ChzzAPI
             startCountingButton.gameObject.SetActive(!isCounting);
             stopCountingButton.gameObject.SetActive(isCounting);
             startSpinButton.gameObject.SetActive(!isCounting);
+            startSpinButton.interactable = !isCounting;
         }
         private void OnClickedSpin()
         {
