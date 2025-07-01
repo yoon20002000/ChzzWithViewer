@@ -223,11 +223,6 @@ namespace ChzzAPI
             socket = null;
         }
 
-        /// <summary>
-        /// 지정한 경로의 txt 파일에서 ChannelID를 읽어옵니다.
-        /// 파일의 첫 줄을 ChannelID로 사용합니다.
-        /// 유저가 직접 txt 파일을 수정할 수 있습니다.
-        /// </summary>
 
         #endregion Public Methods
 
