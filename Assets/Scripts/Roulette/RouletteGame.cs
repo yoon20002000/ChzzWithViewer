@@ -24,6 +24,7 @@ namespace ChzzAPI
         [SerializeField] private Button addRouletteButton;
         [SerializeField] private Button removeRouletteButton;
         [SerializeField] private Button settingButton;
+        [SerializeField] private Button resetPieceDataButton;
         
         [Header("UI Inputs")]
         [SerializeField] private TMP_InputField channelInputField;
@@ -61,6 +62,8 @@ namespace ChzzAPI
             chzzkUnity.onClose.AddListener(OnClose);
             chzzkUnity.onDonation.AddListener(OnDonation);
             chzzkUnity.onMessage.AddListener(OnMessage);
+            
+            startSpinButton.gameObject.SetActive(false);
         }
 
         private void OnDestroy()
@@ -80,11 +83,11 @@ namespace ChzzAPI
             removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
             startSpinButton.onClick.AddListener(OnClickedSpin);
             settingButton.onClick.AddListener(OnClickedSetting);
+            resetPieceDataButton.onClick.AddListener(OnClickedResetPiece);
             
             uiActiveSetting(false);
             rouletteDataManager.Clear();
         }
-
         private void DeinitializeGame()
         {
             foreach (var piece in roulettePieces)
@@ -288,6 +291,7 @@ namespace ChzzAPI
             stopCountingButton.gameObject.SetActive(isCounting);
             startSpinButton.gameObject.SetActive(!isCounting);
             startSpinButton.interactable = !isCounting;
+            resetPieceDataButton.interactable = !isCounting;
         }
         private void OnClickedSpin()
         {
@@ -306,6 +310,13 @@ namespace ChzzAPI
         {
             rouletteSetting.gameObject.SetActive(true);
         }
+        
+        private void OnClickedResetPiece()
+        {
+            rouletteDataManager.Clear();
+            UpdateRoulettePieceUI();
+        }
+        
         private void OnMessage(Profile profile, string message)
         {
             if (string.IsNullOrWhiteSpace(message))
@@ -372,12 +383,12 @@ namespace ChzzAPI
         }
         private void uiActive()
         {
-            uiActiveSetting(true);
+            uiActiveSetting(false);
         }
 
         private void uiDeactive()
         {
-            uiActiveSetting(false);
+            uiActiveSetting(true);
         }
     }
 }
