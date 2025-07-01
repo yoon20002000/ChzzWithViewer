@@ -383,12 +383,12 @@ namespace ChzzAPI
         }
         private void uiActive()
         {
-            uiActiveSetting(false);
+            uiActiveSetting(true);
         }
 
         private void uiDeactive()
         {
-            uiActiveSetting(true);
+            uiActiveSetting(false);
         }
     }
 }
