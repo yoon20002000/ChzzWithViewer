@@ -23,7 +23,8 @@ namespace ChzzAPI
         [SerializeField] private Button startSpinButton;
         [SerializeField] private Button addRouletteButton;
         [SerializeField] private Button removeRouletteButton;
-
+        [SerializeField] private Button settingButton;
+        
         [Header("UI Inputs")]
         [SerializeField] private TMP_InputField channelInputField;
         [SerializeField] private TMP_InputField keyInputField;
@@ -50,24 +51,22 @@ namespace ChzzAPI
         [HideInInspector]
         public UnityEvent<IReadOnlyList<RoulettePieceData>> OnUpdateRoulettePieces = new();
 
+        [Header("UI")]
         [SerializeField] private UI_ResultPopup resultPopup;
+        [SerializeField] private UI_RouletteSetting rouletteSetting;
         private void Awake()
         {
             InitializeGame();
             chzzkUnity.onOpen.AddListener(OnOpen);
             chzzkUnity.onClose.AddListener(OnClose);
-            chzzkUnity.onMessage.AddListener(OnMessage);
             chzzkUnity.onDonation.AddListener(OnDonation);
-            chzzkUnity.onSubscription.AddListener(OnSubscription);
         }
         private void OnDestroy()
         {
             chzzkUnity.onOpen.RemoveListener(OnOpen);
             chzzkUnity.onClose.RemoveListener(OnClose);
-            chzzkUnity.onMessage.RemoveListener(OnMessage);
             chzzkUnity.onDonation.RemoveListener(OnDonation);
-            chzzkUnity.onSubscription.RemoveListener(OnSubscription);
-            // 추후 제거 필요
+
             DeinitializeGame();
         }
 
@@ -78,6 +77,7 @@ namespace ChzzAPI
             addRouletteButton.onClick.AddListener(OnClickedAddRouletteData);
             removeRouletteButton.onClick.AddListener(OnClickedRemoveRouletteData);
             startSpinButton.onClick.AddListener(OnClickedSpin);
+            settingButton.onClick.AddListener(OnClickedSetting);
             
             uiActiveSetting(false);
             rouletteDataManager.Clear();
@@ -298,33 +298,12 @@ namespace ChzzAPI
                 Debug.Log($"선택된 제목 : {data.Description}, 가중치 : {data.Chance}");
             });
         }
-        #region IChzzAPIEvents
-
-        public void OnMessage(Profile profile, string message)
+        
+        private void OnClickedSetting()
         {
-            // if (string.IsNullOrWhiteSpace(message))
-            // {
-            //     return;
-            // }
-            //
-            // var words = message.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            // if (words.Length < 2 || words[0] != ROULETTE_COMMAND)
-            // {
-            //     return;
-            // }
-            //
-            // string key = words[1];
-            // if (string.IsNullOrWhiteSpace(key))
-            // {
-            //     return;
-            // }
-            //
-            // int count = 1;
-            // AddRouletteData(key, count);
-            // Debug.Log($"룰렛 키 추가 : {key}, {count}");
+            rouletteSetting.gameObject.SetActive(true);
         }
-        public void OnSubscription(Profile profile, SubscriptionExtras subscription) { }
-
+        
         public void OnDonation(Profile profile, string message, DonationExtras donation)
         {
             if (string.IsNullOrWhiteSpace(message))
@@ -360,7 +339,5 @@ namespace ChzzAPI
             uiActiveSetting(false);
             Debug.Log("연결 실패");
         }
-
-        #endregion
     }
 }
