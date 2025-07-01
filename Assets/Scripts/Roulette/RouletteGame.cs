@@ -60,7 +60,9 @@ namespace ChzzAPI
             chzzkUnity.onOpen.AddListener(OnOpen);
             chzzkUnity.onClose.AddListener(OnClose);
             chzzkUnity.onDonation.AddListener(OnDonation);
+            chzzkUnity.onMessage.AddListener(OnMessage);
         }
+
         private void OnDestroy()
         {
             chzzkUnity.onOpen.RemoveListener(OnOpen);
@@ -303,7 +305,29 @@ namespace ChzzAPI
         {
             rouletteSetting.gameObject.SetActive(true);
         }
-        
+        private void OnMessage(Profile profile, string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            var words = message.Trim().Split('"', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length < 3 || !message.Contains(ROULETTE_COMMAND))
+            {
+                return;
+            }
+
+            string key = words[1];
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return;
+            }
+
+            int count = 1;
+            AddRouletteData(key, count);
+            Debug.Log($"룰렛 키 추가 : {key}, {count}");
+        }
         public void OnDonation(Profile profile, string message, DonationExtras donation)
         {
             if (string.IsNullOrWhiteSpace(message))
@@ -330,14 +354,24 @@ namespace ChzzAPI
 
         public void OnOpen()
         {
-            uiActiveSetting(true);
+            UnityMainThreadDispatcher.Instance.Enqueue(uiActive);
+            
             Debug.Log("연결 완료");
         }
         public void OnClose()
         {
-            DeinitializeGame();
-            uiActiveSetting(false);
+            UnityMainThreadDispatcher.Instance.Enqueue(uiDeactive);
+            
             Debug.Log("연결 실패");
+        }
+        private void uiActive()
+        {
+            uiActiveSetting(true);
+        }
+
+        private void uiDeactive()
+        {
+            uiActiveSetting(false);
         }
     }
 }
