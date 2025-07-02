@@ -73,6 +73,6 @@ public static class GameSettingManager
             }
         }
 
-        return true;
+        return false;
     }
 }

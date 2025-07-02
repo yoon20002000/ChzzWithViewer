@@ -319,54 +319,51 @@ namespace ChzzAPI
         
         private void OnMessage(Profile profile, string message)
         {
-            if (string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrWhiteSpace(message) || !message.Contains(ROULETTE_COMMAND))
             {
                 return;
             }
 
-            var words = message.Trim().Split('"', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length < 3 || !message.Contains(ROULETTE_COMMAND))
+            int firstQuote = message.IndexOf('"');
+            int secondQuote = message.IndexOf('"', firstQuote + 1);
+
+            if (firstQuote != -1 && secondQuote != -1)
             {
+                string result = message.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
+                
+                int count = 1;
+                AddRouletteData(result, count);
+                Debug.Log($"룰렛 키 추가 : {result}, {count}");
+            }
+            else
+            {
+                Console.WriteLine("큰따옴표가 없습니다.");
                 return;
             }
-
-            string key = words[1];
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                return;
-            }
-
-            int count = 1;
-            AddRouletteData(key, count);
-            Debug.Log($"룰렛 키 추가 : {key}, {count}");
         }
         public void OnDonation(Profile profile, string message, DonationExtras donation)
         {
-            if (string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrWhiteSpace(message) || !message.Contains(ROULETTE_COMMAND))
             {
                 return;
             }
 
-            var words = message.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length < 2 || words[0] != ROULETTE_COMMAND)
-            {
-                return;
-            }
+            int firstQuote = message.IndexOf('"');
+            int secondQuote = message.IndexOf('"', firstQuote + 1);
 
-            string key = words[1];
-            if (GameSettingManager.ContainBannedWord(key))
+            if (firstQuote != -1 && secondQuote != -1)
             {
+                string result = message.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
+                
+                int count = donation.payAmount / countPerAmount;
+                AddRouletteData(result, count);
+                Debug.Log($"룰렛 키 추가 : {result}, {count}");
+            }
+            else
+            {
+                Console.WriteLine("큰따옴표가 없습니다.");
                 return;
             }
-            
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                return;
-            }
-
-            int count = donation.payAmount / countPerAmount;
-            AddRouletteData(key, count);
-            Debug.Log($"룰렛 키 추가 : {key}, {count}");
         }
 
         public void OnOpen()
