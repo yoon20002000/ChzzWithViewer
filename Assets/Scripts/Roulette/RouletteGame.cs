@@ -319,27 +319,27 @@ namespace ChzzAPI
         
         private void OnMessage(Profile profile, string message)
         {
-            if (string.IsNullOrWhiteSpace(message) || !message.Contains(ROULETTE_COMMAND))
-            {
-                return;
-            }
-
-            int firstQuote = message.IndexOf('"');
-            int secondQuote = message.IndexOf('"', firstQuote + 1);
-
-            if (firstQuote != -1 && secondQuote != -1)
-            {
-                string result = message.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
-                
-                int count = 1;
-                AddRouletteData(result, count);
-                Debug.Log($"룰렛 키 추가 : {result}, {count}");
-            }
-            else
-            {
-                Console.WriteLine("큰따옴표가 없습니다.");
-                return;
-            }
+            // if (string.IsNullOrWhiteSpace(message) || !message.Contains(ROULETTE_COMMAND))
+            // {
+            //     return;
+            // }
+            //
+            // int firstQuote = message.IndexOf('"');
+            // int secondQuote = message.IndexOf('"', firstQuote + 1);
+            //
+            // if (firstQuote != -1 && secondQuote != -1)
+            // {
+            //     string result = message.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
+            //     
+            //     int count = 1;
+            //     AddRouletteData(result, count);
+            //     Debug.Log($"룰렛 키 추가 : {result}, {count}");
+            // }
+            // else
+            // {
+            //     Console.WriteLine("큰따옴표가 없습니다.");
+            //     return;
+            // }
         }
         public void OnDonation(Profile profile, string message, DonationExtras donation)
         {
