@@ -106,9 +106,7 @@ Assets/
 ## 🛠️ 개발 환경 설정
 
 ### 필요한 패키지
-- Universal RP
 - TextMesh Pro
-- Input System
 - NuGet for Unity
 - ChzzkUnity 비공식 API : https://github.com/JoKangHyeon/ChzzkUnity
 
