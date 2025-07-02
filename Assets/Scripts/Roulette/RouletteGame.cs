@@ -361,7 +361,7 @@ namespace ChzzAPI
             }
             else
             {
-                Console.WriteLine("큰따옴표가 없습니다.");
+                Debug.LogWarning($"큰따옴표가 없습니다. : {message}");
                 return;
             }
         }
