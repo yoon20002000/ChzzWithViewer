@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using ChzzAPI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,8 +19,12 @@ public class UI_ResultPopup : MonoBehaviour
 
     public void Show(RoulettePieceData pieceData)
     {
-        Setup(pieceData);
-        this.gameObject.SetActive(true);
+        RoulettePieceData pieceDataCopy = pieceData;
+        UnityMainThreadDispatcher.Instance.Enqueue(showUIAfterSeconds(1, () =>
+        {
+            Setup(pieceDataCopy);
+            this.gameObject.SetActive(true); 
+        }));
     }
     public void Hide()
     {
@@ -28,5 +34,12 @@ public class UI_ResultPopup : MonoBehaviour
     private void Setup(RoulettePieceData pieceData)
     {
         ResultText.SetText(pieceData.Description);
+    }
+
+    private IEnumerator showUIAfterSeconds(float seconds,Action callback = null)
+    {
+        yield return Awaitable.WaitForSecondsAsync(seconds);
+        
+        callback?.Invoke();
     }
 }
